@@ -14,7 +14,6 @@ const domInsertCanvas = function (id) {
 const onResize = function (el, cb) {
   const resizeObserver = new ResizeObserver((entries) => {
     if (entries) {
-      console.log('---', entries)
       cb()
     }
   })
@@ -22,20 +21,21 @@ const onResize = function (el, cb) {
 }
 
 const mouseClickOnMove = function (el, cb) {
-  const debounceFunc = throttle(16, e => {
-    // 鼠标左键按下
-    if (e.buttons === 1) {
-      if (!clickTrack[1]) {
-        clickTrack[1] = [e.offsetX, e.offsetY]
+  const debounceFunc = throttle(16, e => requestAnimationFrame(() => {
+      // 鼠标左键按下
+      if (e.buttons === 1) {
+        if (!clickTrack[1]) {
+          clickTrack[1] = [e.offsetX, e.offsetY]
+        } else {
+          clickTrack[0] = clickTrack[1]
+          clickTrack[1] = [e.offsetX, e.offsetY]
+          cb(clickTrack)
+        }
       } else {
-        clickTrack[0] = clickTrack[1]
-        clickTrack[1] = [e.offsetX, e.offsetY]
-        cb(clickTrack)
+        clickTrack = [null, null]
       }
-    } else {
-      clickTrack = [null, null]
     }
-  })
+  ))
   el.addEventListener('mousemove', debounceFunc)
 }
 

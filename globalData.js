@@ -1,6 +1,6 @@
 import LocalDB from './indexedDB.js'
 const db = new LocalDB('map', 1)
-db.createObject('tiles')
+// db.createObject('tiles')
 const data = {
   level: 15, // 层级
   lngLat: [0, 0], // 经纬度
