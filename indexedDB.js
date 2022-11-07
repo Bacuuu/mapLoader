@@ -68,12 +68,12 @@ export default class LocalDB {
         .add(data)
         
       req.onsuccess = () => {
-        console.log('数据写入成功');
+        // console.log('数据写入成功');
         this.isWritingIds.splice(this.isWritingIds.indexOf(data.id), 1)
       };
   
       req.onerror = () => {
-        console.log('数据写入失败');
+        // console.log('数据写入失败');
         this.isWritingIds.splice(this.isWritingIds.indexOf(data.id), 1)
       }
     }

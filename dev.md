@@ -23,18 +23,60 @@ map.addTileLayer('tielLayer', 'http://wprd04.is.autonavi.com/appmaptile?lang=zh_
 
 - 根据dom选择器，插入canvas作为该元素子元素。
 - canvas自适应大小，根据外层容器的宽高进行`width`、`height`的设置。
-  - 一开始的思路是通过css进行百分比设置，能够进行自适应父元素。但是实操过程中发现图片会被拉伸，这个在[mdn](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Basic_usage)中有提到
+  - 一开始的思路是通过css进行百分比设置，能够进行自适应父元素。但是实操过程中发现图片会被拉伸，这个在[mdn](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Basic_usage)中有提到、
   - 最终通过`ResizeObserver`进行父元素的监听，有变化时通过`getBoundingClientRect`拿到父元素的宽高，赋给canvas。现在发现貌似回调函数中就能够拿到宽高值，不用再调用其他方法了。
 
-- 监听通用事件，通过事件总线抛出。主要涉及到的事件有，拖拽、缩放。
+- 监听通用事件。主要涉及到的事件有，拖拽、缩放。
   - 缩放事件是通过在canvas元素监听`wheel`事件
-  - 
+  - 点击拖拽事件通过监听mousemove事件，在回调中根据`buttons`字段判断是否左键按下，记录每次的差值，重新进行绘制。
+
+#### canvasTool
+
+主要负责canvas绘制
+
+- `addSingleImage`，绘制单个图片，根据(图片地址，x，y)绘制到canvas指定位置。
+- `reloadTile`，计算需要的瓦片数，根据行列通过`addSingleImage`进行铺满
+
+#### 整体加载策略
+
+1. 移动或缩放 -> 重新计算加载整个图层。通过节流节省一些性能
+   - 拖动有明显延迟，加载时明显看到瓦片按照行列加载的过程
+2. 通过indexeddb缓存数据
+   - 提升加载速度
+3. 离屏canvas
+   - 目的是解决能够看到瓦片加载过程的问题，类似于整屏渲染
+4. 修改加载策略为，离屏canvas宽高为真实canvas的3倍。
+   - 目的是在拖拽时，直接通过重新对离屏canvas重新定位进行绘制即可。
+   - 在鼠标抬起时，再重新计算离屏canvas。
+5. 计算边界，在边界上叠加元素。（待定）
 
 
 
+> 20221101，分界线。
+>
+> 重新组织下代码，把瓦片组织的关键逻辑拿出来。
 
+#### 核心流程
 
+##### 初始化图层
 
+- 根据经纬度，计算出中心瓦片行列号，下一步是将中心瓦片的真正位置定位到正中间。
+- 计算像素偏移量，像素偏移一直正数，`centerTileOffset`
+- 以中心瓦片为基准，左右上下铺满
+- 将offlineCanvas重绘到canvas上，直接偏移一个canvas的位置
+
+##### 像素拾取
+
+- 假设在canvas的偏移像素为`x`、`y`
+- 求`x、y`和中心瓦片的相对位置关系，从而求当前位置所在的瓦片
+  - 相对canvas中心点偏移量为： `x - canvasWidth / 2`，`y - canvasHeight / 2`
+  - 相对于中心瓦片左上角为：`x - canvasWidth / 2 + centerTileOffsetX`，`y - canvasHeight / 2 + centerTileOffsetY`
+  - 将上面的值进行模处理，确定该点位的瓦片行列值，和相对像素
+- 求经纬度
+
+#### corejs
+
+ 
 
 
 
